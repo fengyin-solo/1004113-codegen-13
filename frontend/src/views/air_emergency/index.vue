@@ -24,6 +24,20 @@
       </span>
     </p>
 
+    <section v-if="linkedTodos.length" class="linked-banner">
+      <header>
+        <strong>地勤排班联动待办</strong>
+        <span class="page-desc">排班结果按交接链路自动写回，下列待办来自地勤排班模块（{{ linkedTodos.length }} 条待响应）</span>
+      </header>
+      <ul>
+        <li v-for="todo in linkedTodos" :key="String(todo.id)">
+          <span class="link-id">{{ todo['应急编号'] }}</span>
+          <span>{{ todo['事件类型'] }}｜{{ todo['响应人员'] }}｜{{ todo['处置措施'] }}</span>
+          <em>来源链路 {{ todo['来源链路'] }}</em>
+        </li>
+      </ul>
+    </section>
+
     <form class="filter-bar" @submit.prevent="reload">
       <label v-for="field in filterFields" :key="field" class="filter-item">
         <span>{{ field }}</span>
@@ -99,6 +113,11 @@ const statusSummary = computed(() =>
   })),
 )
 
+// 地勤排班结果写回本模块的待办：来源标记为「地勤排班」且仍待响应。
+const linkedTodos = computed(() =>
+  rows.value.filter((row) => String(row['来源'] ?? '') === '地勤排班' && String(row.status) === '待响应'),
+)
+
 function resetFilters() {
   filters.value = {}
   reload()
@@ -135,3 +154,43 @@ function reload() {
 
 onMounted(reload)
 </script>
+
+<style scoped>
+.linked-banner {
+  background: #fff;
+  border: 1px solid #bfdbfe;
+  border-left: 4px solid #1f6feb;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+.linked-banner header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.linked-banner ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.linked-banner li {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+.link-id {
+  font-weight: 600;
+  color: #1e40af;
+}
+.linked-banner em {
+  font-style: normal;
+  color: var(--muted);
+}
+</style>
